@@ -6,7 +6,7 @@ DATASETS:
   CITYSCAPES:
     DATA_PATH: '/kaggle/input/cityscapes/Cityspaces/images'
     GT_PATH: '/kaggle/input/cityscapes/Cityspaces/gtFine'
-    PSEUDO_PATH: './data/Cityscapes/pseudo_label_0.45'
+    PSEUDO_PATH: '/kaggle/input/pseudo-labels/pseudo_label_0.45'
 
   SYNTHIA:
     DATA_PATH: './data/RAND_CITYSCAPES/RGB'
@@ -86,8 +86,8 @@ SOLVER:
 
   PER_BATCH: 2
   RESUME: True
-  RESUME_CHECKPOINT_A: r'../pretrain/FDA/gta5_55000.pth'
-  RESUME_CHECKPOINT_B: r'../pretrain/SIM/BestGTA5Cov.pth'
+  RESUME_CHECKPOINT_A: r'/kaggle/input/pretrained/gta5_55000.pth'
+  RESUME_CHECKPOINT_B: r'/kaggle/input/pretrained/BestGTA5Cov.pth'
   TENSORBOARD:
     USE: True
     LOG_PERIOD: 20
