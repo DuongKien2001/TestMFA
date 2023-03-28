@@ -66,6 +66,7 @@ def train(gpu, args, cfg):
         for batch in (tqdm(trainer.tt_dl) if rank==0 else trainer.tt_dl):
             trainer.step(batch)
             trainer.handle_new_batch()
+            print(trainer.current_iteration)
             if trainer.current_iteration>=cfg.SOLVER.MAX_STEPS:
                 break
         if trainer.current_iteration>=cfg.SOLVER.MAX_STEPS:

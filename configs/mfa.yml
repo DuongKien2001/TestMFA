@@ -94,7 +94,7 @@ SOLVER:
 TEST:
   WEIGHT: r'/kaggle/input/mfaweights/deeplabv2_A.pkl'
 
-OUTPUT_DIR: "/kaggle/working/mfa_gta5_fixscale"
+OUTPUT_DIR: "/kaggle/working/TestMFA/mfa_gta5_fixscale"
 
 
 
