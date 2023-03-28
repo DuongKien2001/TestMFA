@@ -147,7 +147,7 @@ class BaseTrainer(object):
         self.batch_cnt += 1
         self.current_iteration += 1
 
-        if (self.current_iteration > self.cfg.SOLVER.START_EVAL_STEP and self.current_iteration % self.eval_period == 0) or self.current_iteration==2000:
+        if (self.current_iteration > self.cfg.SOLVER.START_EVAL_STEP and self.current_iteration % self.eval_period == 0) or self.current_iteration==600:
             torch.optim.swa_utils.update_bn(self.tt_dl, self.mean_model_A)
             torch.optim.swa_utils.update_bn(self.tt_dl, self.mean_model_B)
             self.evaluate(self.mean_model_A, self.res_recoder_A)
