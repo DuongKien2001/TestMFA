@@ -274,7 +274,7 @@ class BaseTrainer(object):
                 trg_output_emma_B = self.mean_model_B(target_data).detach()
             student_logits_A = torch.flatten(trg_output_A, start_dim=2)
             ema_logits_A = torch.flatten(trg_output_emma_A, start_dim=2)
-            student_logits_B = torch.flatten(trg_output_B start_dim=2)
+            student_logits_B = torch.flatten(trg_output_B, start_dim=2)
             ema_logits_B = torch.flatten(trg_output_emma_B, start_dim=2)
 
             selected_index = torch.randperm(student_logits_A.size()[-1])[:4]
