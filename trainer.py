@@ -259,7 +259,7 @@ class BaseTrainer(object):
             with torch.no_grad():
                 trg_output_emma_A = self.mean_model_A(target_data).detach()
                 trg_output_emma_B = self.mean_model_B(target_data).detach()
-
+            print(trg_output_emma_A.size())
             self.loss_temporal_consist_A = self.consist_loss(F.softmax(trg_output_A, dim=1), F.softmax(trg_output_emma_A, dim=1))
             self.loss_temporal_consist_B = self.consist_loss(F.softmax(trg_output_B, dim=1), F.softmax(trg_output_emma_B, dim=1))
 

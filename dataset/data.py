@@ -83,6 +83,11 @@ class BaseDataImageSet(data.Dataset):
         self.main_transform = main_transform
         # self.id_to_trainid = eval(self.dataset_node.ID_TO_TRAINID)
         self.n_classes = n_classes
+        self.rcs_class_temp = 0.01
+        self.rcs_classes, self.rcs_classprob = get_rcs_class_probs(
+                cfg['DATASETS']['OUT_DIR'], self.rcs_class_temp)
+        self.rcs_min_pixels = 3000
+        rcs_min_crop_ratio = 0.5
 
         self.classes_n = self.dataset_node['CLASSES_{}'.format(n_classes)]
         self.valid_classes = self.classes_n['VALID_CLASSES']
@@ -104,7 +109,21 @@ class BaseDataImageSet(data.Dataset):
         self.ignore_index = cfg.DATASETS.IGNORE_INDEX
         self.class_map = dict(zip(self.valid_classes, range(self.n_classes)))
         self.resize_trans = self._resize()
-
+        with open(osp.join(cfg['DATASETS']['OUT_DIR'],
+                             'samples_with_class.json'), 'r') as of:
+                samples_with_class_and_n = json.load(of)
+        samples_with_class_and_n = {
+                int(k): v
+                for k, v in samples_with_class_and_n.items()
+                if int(k) in self.rcs_classes
+        }
+        self.samples_with_class = {}
+        for c in self.rcs_classes:
+            self.samples_with_class[c] = []
+            for file, pixels in samples_with_class_and_n[c]:
+                if pixels > self.rcs_min_pixels:
+                    self.samples_with_class[c].append(file.split('/')[-1])
+            assert len(self.samples_with_class[c]) > 0
         if not self.file_list:
             raise Exception(
                 "No files for mode=[%s] found in %s" % (self.mode, self.dataset_node.DATA_PATH,)
@@ -114,8 +133,11 @@ class BaseDataImageSet(data.Dataset):
         if not hasattr(self, 'post_transforms'):
             self._split_transforms()
         # read data and main transforms
-        img, gt = self.read_data_and_gt(index)
-
+        if self.dataset_name == 'GTA5' or self.dataset_name == 'SYNTHIA':
+            id_class, index = self.get_rare_class_sample()
+            img, gt = self.read_data_and_gt(index, id_class)
+        else:
+            img, gt = self.read_data_and_gt(index)
         return img, gt.long(), self.file_list[index]
 
     def __len__(self):
@@ -208,8 +230,14 @@ class BaseDataImageSet(data.Dataset):
         rgb[:, :, 1] = g / 255.0
         rgb[:, :, 2] = b / 255.0
         return rgb
-
-    def read_data_and_gt(self, index):
+    
+    def get_rare_class_sample(self):
+        c = np.random.choice(self.rcs_classes, p=self.rcs_classprob)
+        f1 = np.random.choice(self.samples_with_class[c])
+        return c, int(f1[:-4])
+        
+    
+    def read_data_and_gt(self, index, id_class=None):
         img_path = self.file_list[index]
         img = imread(img_path).astype(np.float32)
         img = img[...,::-1].copy()
@@ -249,6 +277,13 @@ class BaseDataImageSet(data.Dataset):
         # base transform
         aug = self.main_transform(**data)
         img, gt = aug['image'], aug['mask']
+        if id_class is not None:
+            if self.rcs_min_crop_ratio > 0:
+                for j in range(10):
+                    n_class = torch.sum(gt == id_class)
+                    if n_class > self.rcs_min_pixels * self.rcs_min_crop_ratio:
+                        break
+                    img, gt = aug['image'], aug['mask']
         return img, gt
 
     def get_num_samples(self):
