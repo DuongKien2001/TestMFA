@@ -49,8 +49,10 @@ _C.DATASETS.IGNORE_INDEX = 255
 _C.DATASETS.CLASS_NAMES = ["road","sidewalk","building","wall","fence","pole","traffic_light",
                             "traffic_sign","vegetation","terrain","sky","person","rider","car","truck","bus","train",
                             "motorcycle","bicycle"]
+_C.DATASETS.OUT_DIR = '/kaggle/working'
 # GTA5
 _C.DATASETS.GTA5 = CN()
+
 _C.DATASETS.GTA5.SPLIT='all'
 _C.DATASETS.GTA5.DATA_PATH = r''
 _C.DATASETS.GTA5.GT_PATH = r''
