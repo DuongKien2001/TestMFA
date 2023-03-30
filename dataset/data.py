@@ -37,7 +37,7 @@ def recursive_glob(rootdir=".", suffix=""):
     ]
 
 def get_rcs_class_probs(data_root, temperature):
-    with open(osp.join('/kaggle/input/sample_class', 'sample_class_stats.json'), 'r') as of:
+    with open(osp.join('/kaggle/input/sample_class', 'sample-class_stats.json'), 'r') as of:
         sample_class_stats = json.load(of)
     overall_class_stats = {}
     for s in sample_class_stats:
@@ -109,7 +109,7 @@ class BaseDataImageSet(data.Dataset):
         self.ignore_index = cfg.DATASETS.IGNORE_INDEX
         self.class_map = dict(zip(self.valid_classes, range(self.n_classes)))
         self.resize_trans = self._resize()
-        with open(osp.join('/kaggle/input/sample_class',
+        with open(osp.join('/kaggle/input/sample-class',
                              'samples_with_class.json'), 'r') as of:
                 samples_with_class_and_n = json.load(of)
         samples_with_class_and_n = {
