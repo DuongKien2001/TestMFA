@@ -87,7 +87,7 @@ class BaseDataImageSet(data.Dataset):
         self.rcs_classes, self.rcs_classprob = get_rcs_class_probs(
                 cfg['DATASETS']['OUT_DIR'], self.rcs_class_temp)
         self.rcs_min_pixels = 3000
-        rcs_min_crop_ratio = 0.5
+        self.rcs_min_crop_ratio = 0.5
 
         self.classes_n = self.dataset_node['CLASSES_{}'.format(n_classes)]
         self.valid_classes = self.classes_n['VALID_CLASSES']
