@@ -1,11 +1,3 @@
-'''
-Author: Kai Zhang
-Date: 2021-11-29 13:27:56
-LastEditors: Please set LastEditors
-LastEditTime: 2022-02-17 15:41:21
-Description: train file
-'''
-
 import os
 import torch
 from torch import nn 
@@ -66,7 +58,6 @@ def train(gpu, args, cfg):
         for batch in (tqdm(trainer.tt_dl) if rank==0 else trainer.tt_dl):
             trainer.step(batch)
             trainer.handle_new_batch()
-            print(trainer.current_iteration)
             if trainer.current_iteration>=cfg.SOLVER.MAX_STEPS:
                 break
         if trainer.current_iteration>=cfg.SOLVER.MAX_STEPS:
