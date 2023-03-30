@@ -22,6 +22,7 @@ import numpy as np
 import albumentations as A
 from PIL import Image
 import imageio
+import json
 
 def recursive_glob(rootdir=".", suffix=""):
     """Performs recursive glob with given suffix and rootdir 
@@ -34,6 +35,30 @@ def recursive_glob(rootdir=".", suffix=""):
         for filename in filenames
         if filename.endswith(suffix)
     ]
+
+def get_rcs_class_probs(data_root, temperature):
+    with open(osp.join(data_root, 'sample_class_stats.json'), 'r') as of:
+        sample_class_stats = json.load(of)
+    overall_class_stats = {}
+    for s in sample_class_stats:
+        s.pop('file')
+        for c, n in s.items():
+            c = int(c)
+            if c not in overall_class_stats:
+                overall_class_stats[c] = n
+            else:
+                overall_class_stats[c] += n
+    overall_class_stats = {
+        k: v
+        for k, v in sorted(
+            overall_class_stats.items(), key=lambda item: item[1])
+    }
+    freq = torch.tensor(list(overall_class_stats.values()))
+    freq = freq / torch.sum(freq)
+    freq = 1 - freq
+    freq = torch.softmax(freq / temperature, dim=-1)
+
+    return list(overall_class_stats.keys()), freq.numpy()
 
 class BaseDataImageSet(data.Dataset):
     """
@@ -84,7 +109,7 @@ class BaseDataImageSet(data.Dataset):
             raise Exception(
                 "No files for mode=[%s] found in %s" % (self.mode, self.dataset_node.DATA_PATH,)
             )
-
+    
     def __getitem__(self, index):
         if not hasattr(self, 'post_transforms'):
             self._split_transforms()
