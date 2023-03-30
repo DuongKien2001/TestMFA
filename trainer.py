@@ -20,6 +20,18 @@ import numpy as np
 from prettytable import PrettyTable
 from torch.cuda.amp import autocast as autocast
 import torch.distributed as dist
+from torch.nn import MSELoss
+def cosine_pairwise(x):
+    
+    # convert to batch_size, num_vectors, vector_dimension
+    # from batch_size, vector_dimension, num_vectors
+    x = x.permute((0, 2, 1))
+
+    x = x.permute((1, 2, 0))
+    cos_sim_pairwise = F.cosine_similarity(x, x.unsqueeze(1), dim=-2)
+    cos_sim_pairwise = cos_sim_pairwise.permute((2, 0, 1))
+    return cos_sim_pairwise
+
 class result_recorder(object):
     def __init__(self, name, best_res=0.0, best_iter=0):
         self.name = name
@@ -47,6 +59,7 @@ class BaseTrainer(object):
         self.st_dl = source_train_loader
         self.tt_dl = target_train_loader
         self.tv_dl = target_val_loader
+        self.lambda_sc = 1.0
 
         if cfg.INPUT.USE_SOURCE_DATA:
             self.st_iter = iter(self.st_dl)
@@ -259,12 +272,33 @@ class BaseTrainer(object):
             with torch.no_grad():
                 trg_output_emma_A = self.mean_model_A(target_data).detach()
                 trg_output_emma_B = self.mean_model_B(target_data).detach()
-            print(trg_output_emma_A.size())
+            student_logits_A = torch.flatten(trg_output_A, start_dim=2)
+            ema_logits_A = torch.flatten(trg_output_emma_A, start_dim=2)
+            student_logits_B = torch.flatten(trg_output_B start_dim=2)
+            ema_logits_B = torch.flatten(trg_output_emma_B, start_dim=2)
+
+            selected_index = torch.randperm(student_logits_A.size()[-1])[:4]
+            student_logits_A = student_logits_A[:, :, selected_index]
+            ema_logits_A = ema_logits_A[:, :, selected_index]
+            student_pairwise_A = cosine_pairwise(student_logits_A)
+            ema_pairwise_A = cosine_pairwise(ema_logits_A)
+
+            selected_index = torch.randperm(student_logits_B.size()[-1])[:4]
+            student_logits_B = student_logits_B[:, :, selected_index]
+            ema_logits_B = ema_logits_B[:, :, selected_index]
+            student_pairwise_B = cosine_pairwise(student_logits_B)
+            ema_pairwise_B = cosine_pairwise(ema_logits_B)
+
+            mse_loss = MSELoss()
+            structured_consistency_loss_A = self.lambda_sc * (mse_loss(student_pairwise_A,
+                                                           ema_pairwise_A))
+            structured_consistency_loss_B = self.lambda_sc * (mse_loss(student_pairwise_B,
+                                                           ema_pairwise_B))
             self.loss_temporal_consist_A = self.consist_loss(F.softmax(trg_output_A, dim=1), F.softmax(trg_output_emma_A, dim=1))
             self.loss_temporal_consist_B = self.consist_loss(F.softmax(trg_output_B, dim=1), F.softmax(trg_output_emma_B, dim=1))
 
-            self.loss_A += self.temporal_consist_weight * self.loss_temporal_consist_A
-            self.loss_B += self.temporal_consist_weight * self.loss_temporal_consist_B
+            self.loss_A += self.temporal_consist_weight * self.loss_temporal_consist_A + structured_consistency_loss_A
+            self.loss_B += self.temporal_consist_weight * self.loss_temporal_consist_B + structured_consistency_loss_B
 
         # target data cross model consistency loss
             self.mean_model_A.eval()
