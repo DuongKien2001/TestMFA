@@ -37,7 +37,7 @@ def recursive_glob(rootdir=".", suffix=""):
     ]
 
 def get_rcs_class_probs(data_root, temperature):
-    with open(osp.join('/kaggle/input/sample_class', 'sample-class_stats.json'), 'r') as of:
+    with open(osp.join('/kaggle/input/sample-class', 'sample_class_stats.json'), 'r') as of:
         sample_class_stats = json.load(of)
     overall_class_stats = {}
     for s in sample_class_stats:
