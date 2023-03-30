@@ -176,9 +176,7 @@ class BaseTrainer(object):
                                     .format(self.train_epoch, self.current_iteration, self.loss_A, self.loss_B, self.src_loss_A, self.trg_loss_A, \
                                         self.loss_temporal_consist_A, self.loss_cross_model_consist_A, lr, alpha))
 
-            if self.current_iteration > self.cfg.SOLVER.START_SAVE_STEP and self.current_iteration % self.checkpoint_period == 0:
-                self.save()
-                self.mean_save()
+            
 
     def handle_new_epoch(self):
         self.batch_cnt = 1
@@ -186,6 +184,9 @@ class BaseTrainer(object):
             self.logger.info('Epoch {} done'.format(self.train_epoch))
             self.logger.info('-' * 20)
         self.train_epoch += 1
+        if (self.train_epoch%3 == 0 or self.train_epoch == 1) and self.rank == 0:
+            self.save()
+            self.mean_save()
     
     def adjust_valid_alpha(self, power=1.1):
         if self.current_iteration < self.cfg.SOLVER.WARMUP_STEP:
@@ -384,14 +385,14 @@ class BaseTrainer(object):
         dist.barrier()
         return 
 
-    def mean_save(self):
+    def mean_save(self, id):
         torch.save(self.mean_model_A.module.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_Mean_A_step' + str(self.current_iteration) + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_Mean_A_step' + str(id) + '.pth'))
         torch.save(self.mean_model_B.module.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_Mean_B_step' + str(self.current_iteration) + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_Mean_B_step' + str(id) + '.pth'))
 
-    def save(self):
+    def save(self, id):
         torch.save(self.model_A.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_A_step' + str(self.current_iteration) + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_A_step' + str(id) + '.pth'))
         torch.save(self.model_B.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_B_step' + str(self.current_iteration) + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_B_step' + str(id)+ '.pth'))
