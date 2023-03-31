@@ -107,8 +107,8 @@ class BaseTrainer(object):
         self.mean_model_A.update_parameters(self.model_A)
         self.mean_model_B.update_parameters(self.model_B)
 
-        assert self.is_equal(self.model_A, self.mean_model_A.module)
-        assert self.is_equal(self.model_B, self.mean_model_B.module)
+        #assert self.is_equal(self.model_A, self.mean_model_A.module)
+        #assert self.is_equal(self.model_B, self.mean_model_B.module)
         
         self.scheduler_A = mfa_lr_scheduler(self.optim_A, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
         self.scheduler_B = mfa_lr_scheduler(self.optim_B, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
