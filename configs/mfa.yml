@@ -96,7 +96,7 @@ SOLVER:
     USE: True
     LOG_PERIOD: 20
 TEST:
-  WEIGHT: r'/kaggle/input/train-epoch6/mfa_gta5_fixscale/deeplabv2_Mean_A_step6.pth'
+  WEIGHT: r"C:\Users\PC\Downloads\train_epoch6\mfa_gta5_fixscale\deeplabv2_A_step6.pth"
 
 OUTPUT_DIR: "/kaggle/working/mfa_gta5_fixscale"
 

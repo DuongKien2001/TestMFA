@@ -22,6 +22,8 @@ from torch.cuda.amp import autocast as autocast
 import torch.distributed as dist
 from torch.nn import MSELoss
 from model import build_model
+import copy
+
 def cosine_pairwise(x):
     
     # convert to batch_size, num_vectors, vector_dimension
@@ -56,8 +58,8 @@ class BaseTrainer(object):
         self.rank = args.nr * args.gpus + gpu
         self.model_A = model_A
         self.model_B = model_B
-        self.mode_mean_A = build_model(cfg)
-        self.mode_mean_B = build_model(cfg)
+        self.mode_mean_A = copy.deepcopy(self.model_A)
+        self.mode_mean_B = copy.deepcopy(self.model_B)
 
         self.st_dl = source_train_loader
         self.tt_dl = target_train_loader
@@ -130,14 +132,6 @@ class BaseTrainer(object):
         param_dict = torch.load(weight_path, map_location=lambda storage, loc: storage)
         if 'state_dict' in param_dict.keys():
             param_dict = param_dict['state_dict']
-
-        start_with_module = False
-        for k in model.state_dict().keys():
-            if k.startswith('module.'):
-                start_with_module = True
-                break
-        if start_with_module:
-            param_dict = {'module.'+k : v for k, v in param_dict.items() }
         
         if self.rank == 0:
             print('ignore_param:')
