@@ -183,7 +183,7 @@ class BaseTrainer(object):
         if self.rank==0:
             self.logger.info('Epoch {} done'.format(self.train_epoch))
             self.logger.info('-' * 20)
-            if (self.train_epoch%3 == 0 or self.train_epoch == 1) and self.rank == 0:
+            if self.rank == 0:
                 self.save(self.train_epoch)
                 self.mean_save(self.train_epoch)
         self.train_epoch += 1
