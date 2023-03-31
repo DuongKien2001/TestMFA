@@ -69,10 +69,12 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
     import torch
 
     print('==========> start test model')
+    """
     model = build_model(cfg)
     # summary(model.cuda(), (3, 1024, 2048))
     print('load from: ', cfg.TEST.WEIGHT)
     param_dict = torch.load(cfg.TEST.WEIGHT, map_location=lambda storage, loc: storage)
+    print(param_dict.keys())
     if 'state_dict' in param_dict.keys():
         param_dict = param_dict['state_dict']
 
@@ -87,6 +89,8 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
                     model.state_dict()[k].size() == v.size()}
     for i in param_dict:
         model.state_dict()[i].copy_(param_dict[i])
+    """
+    model = torch.load(cfg.TEST.WEIGHT, map_location=lambda storage, loc: storage)
     model = model.to(gpu)
     evaluate(model, target_val_loader, args, cfg, gpu)
 
