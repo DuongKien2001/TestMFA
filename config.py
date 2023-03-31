@@ -219,7 +219,8 @@ _C.SOLVER.RANDOMSEED = 2021
 
 
 _C.TEST = CN()
-_C.TEST.WEIGHT = r'../cache/mfa_result/deeplabv2_A.pkl'
+_C.TEST.WEIGHTA = r'../cache/mfa_result/deeplabv2_A.pkl'
+_C.TEST.WEIGHTB = r''
 _C.TEST.IMAGE_FOLDER = r''
 _C.TEST.FLIP_AUG = False
 _C.TEST.ONLY13_CLASSES = False
