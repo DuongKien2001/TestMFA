@@ -86,7 +86,7 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
             model.state_dict()[k].size() != v.size()])
     print('unload_param:')
     print([k for k, v in model.state_dict().items() if k not in param_dict1.keys() or
-            param_dict[k].size() != v.size()] )
+            param_dict1[k].size() != v.size()] )
 
     param_dict2 = {k: v for k, v in param_dict1.items() if k in model.state_dict() and
                     model.state_dict()[k].size() == v.size()}
