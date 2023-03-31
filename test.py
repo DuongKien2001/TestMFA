@@ -28,9 +28,9 @@ def evaluate(modelA, modelB, dataloader, args, cfg, gpu, flip=True, save_res=Fal
             data, target, path = batch
             data = data.to(gpu)
             # data = torch.flip(data, (1,))  # in old version input channel is BGR, but now it is RGB
-            outputs = (softmax(modelA(data, upsample=True)) + softmax(modelA(data, upsample=True))) / 2.0
+            outputs = (softmax(modelA(data, upsample=True)) + softmax(modelB(data, upsample=True))) / 2.0
             if flip:
-                outputs += (softmax(torch.flip(modelA(torch.flip(data, (3,))), (3,))) + softmax(torch.flip(modelA(torch.flip(data, (3,))), (3,))))/2.0
+                outputs += (softmax(torch.flip(modelA(torch.flip(data, (3,))), (3,))) + softmax(torch.flip(modelB(torch.flip(data, (3,))), (3,))))/2.0
             outputs = outputs.data.cpu()
             _, preds = torch.max(outputs, (1))
             # save result
