@@ -71,27 +71,28 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
     print('==========> start test model')
     
     model = build_model(cfg)
-    """
     # summary(model.cuda(), (3, 1024, 2048))
     print('load from: ', cfg.TEST.WEIGHT)
     param_dict = torch.load(cfg.TEST.WEIGHT, map_location=lambda storage, loc: storage)
-    print(param_dict.keys())
-    if 'state_dict' in param_dict.keys():
-        param_dict = param_dict['state_dict']
-
+    #print(param_dict.keys())
+    #if 'state_dict' in param_dict.keys():
+    #    param_dict = param_dict['state_dict']
+    param_dict1 = {}
+    for k, v in param_dict.items():
+        k_ = k.replace("module.", "")
+        param_dict1[k_]=param_dict[k]
     print('ignore_param:')
-    print([k for k, v in param_dict.items() if k not in model.state_dict() or
+    print([k for k, v in param_dict1.items() if k not in model.state_dict() or
             model.state_dict()[k].size() != v.size()])
     print('unload_param:')
-    print([k for k, v in model.state_dict().items() if k not in param_dict.keys() or
+    print([k for k, v in model.state_dict().items() if k not in param_dict1.keys() or
             param_dict[k].size() != v.size()] )
 
-    param_dict = {k: v for k, v in param_dict.items() if k in model.state_dict() and
+    param_dict2 = {k: v for k, v in param_dict1.items() if k in model.state_dict() and
                     model.state_dict()[k].size() == v.size()}
-    for i in param_dict:
-        model.state_dict()[i].copy_(param_dict[i])
-    """
-    model.load_state_dict(torch.load(cfg.TEST.WEIGHT, map_location=lambda storage, loc: storage))
+    for i in param_dict2:
+        model.state_dict()[i].copy_(param_dict2[i])
+    
     model = model.to(gpu)
     evaluate(model, target_val_loader, args, cfg, gpu)
 
