@@ -385,14 +385,14 @@ class BaseTrainer(object):
         return 
 
     def mean_save(self, id):
-        print("save mean_"+id)
+        print("save mean_"+ str(id))
         torch.save(self.mean_model_A.module.state_dict(), osp.join(self.output_dir,
                                                      self.cfg.MODEL.NAME + '_Mean_A' + '.pth'))
         torch.save(self.mean_model_B.module.state_dict(), osp.join(self.output_dir,
                                                      self.cfg.MODEL.NAME + '_Mean_B' + '.pth'))
 
     def save(self, id):
-        print("save "+id)
+        print("save "+ str(id))
         torch.save(self.model_A.state_dict(), osp.join(self.output_dir,
                                                      self.cfg.MODEL.NAME + '_A_' + '.pth'))
         torch.save(self.model_B.state_dict(), osp.join(self.output_dir,
