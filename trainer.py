@@ -58,8 +58,8 @@ class BaseTrainer(object):
         self.rank = args.nr * args.gpus + gpu
         self.model_A = model_A
         self.model_B = model_B
-        self.mode_mean_A = copy.deepcopy(self.model_A)
-        self.mode_mean_B = copy.deepcopy(self.model_B)
+        #self.mode_mean_A = copy.deepcopy(self.model_A)
+        #self.mode_mean_B = copy.deepcopy(self.model_B)
 
         self.st_dl = source_train_loader
         self.tt_dl = target_train_loader
@@ -79,15 +79,15 @@ class BaseTrainer(object):
         self.res_recoder_A = result_recorder('mean_model_A')
         self.res_recoder_B = result_recorder('mean_model_B')
 
-        self.train_epoch = 7
+        self.train_epoch = 1
         self.optim_A = optimizer_A
         self.optim_B = optimizer_B
         self.scaler = scaler
         if cfg.SOLVER.RESUME:
             self.load_param(self.model_A, cfg.SOLVER.RESUME_CHECKPOINT_A)
             self.load_param(self.model_B, cfg.SOLVER.RESUME_CHECKPOINT_B)
-            self.load_param(self.mode_mean_B, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
-            self.load_param(self.mode_mean_A, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A)
+            #self.load_param(self.mode_mean_B, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
+            #self.load_param(self.mode_mean_A, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A)
 
         self.batch_cnt = 0
         self.logger = logging.getLogger('baseline.train')
@@ -100,15 +100,15 @@ class BaseTrainer(object):
             summary_dir = os.path.join(cfg.OUTPUT_DIR, 'summaries/')
             os.makedirs(summary_dir, exist_ok=True)
             self.summary_writer = SummaryWriter(log_dir=summary_dir)
-        self.current_iteration = 744*6
+        self.current_iteration = 0
 
-        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.mode_mean_A, device=gpu)
-        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.mode_mean_B, device=gpu)
+        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.model_A, device=gpu)
+        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.model_B, device=gpu)
         self.mean_model_A.update_parameters(self.model_A)
         self.mean_model_B.update_parameters(self.model_B)
 
-        #assert self.is_equal(self.model_A, self.mean_model_A.module)
-        #assert self.is_equal(self.model_B, self.mean_model_B.module)
+        assert self.is_equal(self.model_A, self.mean_model_A.module)
+        assert self.is_equal(self.model_B, self.mean_model_B.module)
         
         self.scheduler_A = mfa_lr_scheduler(self.optim_A, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
         self.scheduler_B = mfa_lr_scheduler(self.optim_B, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
