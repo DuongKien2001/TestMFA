@@ -50,6 +50,7 @@ def train(gpu, args, cfg):
     if rank == 0:
         logger.info(type(model_A))
         logger.info(trainer)
+
     for e in range(cfg.SOLVER.MAX_EPOCHS):
 
         source_train_sampler.set_epoch(e)

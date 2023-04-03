@@ -182,9 +182,8 @@ class BaseTrainer(object):
         if self.rank==0:
             self.logger.info('Epoch {} done'.format(self.train_epoch))
             self.logger.info('-' * 20)
-            if self.rank == 0:
-                self.save(self.train_epoch)
-                self.mean_save(self.train_epoch)
+            self.save()
+            self.mean_save()
         self.train_epoch += 1
     
     def adjust_valid_alpha(self, power=1.1):
@@ -268,10 +267,7 @@ class BaseTrainer(object):
             self.loss_A += self.trg_loss_A
             self.loss_B += self.trg_loss_B
 
-        # target data temporal consistency loss
-            with torch.no_grad():
-                trg_output_emma_A = self.mean_model_A(target_data).detach()
-                trg_output_emma_B = self.mean_model_B(target_data).detach()
+            """
             student_logits_A = torch.flatten(trg_output_A, start_dim=2)
             ema_logits_A = torch.flatten(trg_output_emma_A, start_dim=2)
             student_logits_B = torch.flatten(trg_output_B, start_dim=2)
@@ -289,16 +285,23 @@ class BaseTrainer(object):
             student_pairwise_B = cosine_pairwise(student_logits_B)
             ema_pairwise_B = cosine_pairwise(ema_logits_B)
 
+            
             mse_loss = MSELoss()
             structured_consistency_loss_A = self.lambda_sc * (mse_loss(student_pairwise_A,
                                                            ema_pairwise_A))
             structured_consistency_loss_B = self.lambda_sc * (mse_loss(student_pairwise_B,
                                                            ema_pairwise_B))
+            
+            """
+        # target data temporal consistency loss
+            with torch.no_grad():
+                trg_output_emma_A = self.mean_model_A(target_data).detach()
+                trg_output_emma_B = self.mean_model_B(target_data).detach()
             self.loss_temporal_consist_A = self.consist_loss(F.softmax(trg_output_A, dim=1), F.softmax(trg_output_emma_A, dim=1))
             self.loss_temporal_consist_B = self.consist_loss(F.softmax(trg_output_B, dim=1), F.softmax(trg_output_emma_B, dim=1))
 
-            self.loss_A += self.temporal_consist_weight * self.loss_temporal_consist_A + structured_consistency_loss_A
-            self.loss_B += self.temporal_consist_weight * self.loss_temporal_consist_B + structured_consistency_loss_B
+            self.loss_A += self.temporal_consist_weight * self.loss_temporal_consist_A 
+            self.loss_B += self.temporal_consist_weight * self.loss_temporal_consist_B 
 
         # target data cross model consistency loss
             self.mean_model_A.eval()
@@ -384,16 +387,14 @@ class BaseTrainer(object):
         dist.barrier()
         return 
 
-    def mean_save(self, id):
-        print("save mean_"+ str(id))
+    def mean_save(self):
         torch.save(self.mean_model_A.module.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_Mean_A' + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_Mean_A_step' + str(self.train_epoch) + '.pth'))
         torch.save(self.mean_model_B.module.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_Mean_B' + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_Mean_B_step' + str(self.train_epoch) + '.pth'))
 
-    def save(self, id):
-        print("save "+ str(id))
+    def save(self):
         torch.save(self.model_A.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_A_' + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_A_step' + str(self.train_epoch) + '.pth'))
         torch.save(self.model_B.state_dict(), osp.join(self.output_dir,
-                                                     self.cfg.MODEL.NAME + '_B_' + '.pth'))
+                                                     self.cfg.MODEL.NAME + '_B_step' + str(self.train_epoch) + '.pth'))
