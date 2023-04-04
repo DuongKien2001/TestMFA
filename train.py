@@ -51,10 +51,10 @@ def train(gpu, args, cfg):
         logger.info(type(model_A))
         logger.info(trainer)
 
-    for e in range(cfg.SOLVER.MAX_EPOCHS):
+    for e in range(cfg.SOLVER.MAX_EPOCHS-9):
 
-        source_train_sampler.set_epoch(e)
-        target_train_sampler.set_epoch(e)
+        source_train_sampler.set_epoch(e+9)
+        target_train_sampler.set_epoch(e+9)
 
         for batch in (tqdm(trainer.tt_dl) if rank==0 else trainer.tt_dl):
             trainer.step(batch)

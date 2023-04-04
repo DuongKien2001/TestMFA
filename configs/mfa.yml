@@ -76,7 +76,7 @@ SOLVER:
   MIX_PRECISION: True
 
   MAX_EPOCHS: 20
-  MAX_STEPS: 70000
+  MAX_STEPS: 700000
   WARMUP_STEP: 2000
   CHECKPOINT_PERIOD: 5000
   LOG_PERIOD: 100
@@ -87,8 +87,10 @@ SOLVER:
 
   PER_BATCH: 2
   RESUME: True
-  RESUME_CHECKPOINT_A: r'/kaggle/input/pretrained/BestGTA5Cov.pth'
-  RESUME_CHECKPOINT_B: r'/kaggle/input/pretrained/gta5_55000.pth'
+  RESUME_CHECKPOINT_A: r'/kaggle/input/mfa-uda/deeplabv2_A_step9.pth'
+  RESUME_CHECKPOINT_B: r'/kaggle/input/mfa-uda/deeplabv2_B_step9.pth'
+  RESUME_CHECKPOINT_MEAN_A: r'/kaggle/input/mfa-uda/deeplabv2_Mean_A_step9.pth'
+  RESUME_CHECKPOINT_MEAN_A: r'/kaggle/input/mfa-uda/deeplabv2_Mean_B_step9.pth'
   TENSORBOARD:
     USE: True
     LOG_PERIOD: 20

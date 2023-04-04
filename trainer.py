@@ -58,8 +58,8 @@ class BaseTrainer(object):
         self.rank = args.nr * args.gpus + gpu
         self.model_A = model_A
         self.model_B = model_B
-        #self.mode_mean_A = copy.deepcopy(self.model_A)
-        #self.mode_mean_B = copy.deepcopy(self.model_B)
+        self.mode_mean_A = copy.deepcopy(self.model_A)
+        self.mode_mean_B = copy.deepcopy(self.model_B)
 
         self.st_dl = source_train_loader
         self.tt_dl = target_train_loader
@@ -79,15 +79,15 @@ class BaseTrainer(object):
         self.res_recoder_A = result_recorder('mean_model_A')
         self.res_recoder_B = result_recorder('mean_model_B')
 
-        self.train_epoch = 1
+        self.train_epoch = 10
         self.optim_A = optimizer_A
         self.optim_B = optimizer_B
         self.scaler = scaler
         if cfg.SOLVER.RESUME:
             self.load_param(self.model_A, cfg.SOLVER.RESUME_CHECKPOINT_A)
             self.load_param(self.model_B, cfg.SOLVER.RESUME_CHECKPOINT_B)
-            #self.load_param(self.mode_mean_B, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
-            #self.load_param(self.mode_mean_A, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A)
+            self.load_param(self.mode_mean_B, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
+            self.load_param(self.mode_mean_A, cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A)
 
         self.batch_cnt = 0
         self.logger = logging.getLogger('baseline.train')
@@ -100,15 +100,15 @@ class BaseTrainer(object):
             summary_dir = os.path.join(cfg.OUTPUT_DIR, 'summaries/')
             os.makedirs(summary_dir, exist_ok=True)
             self.summary_writer = SummaryWriter(log_dir=summary_dir)
-        self.current_iteration = 0
+        self.current_iteration = 744*9
 
         self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.model_A, device=gpu)
         self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.model_B, device=gpu)
         self.mean_model_A.update_parameters(self.model_A)
         self.mean_model_B.update_parameters(self.model_B)
 
-        assert self.is_equal(self.model_A, self.mean_model_A.module)
-        assert self.is_equal(self.model_B, self.mean_model_B.module)
+        #assert self.is_equal(self.model_A, self.mean_model_A.module)
+        #assert self.is_equal(self.model_B, self.mean_model_B.module)
         
         self.scheduler_A = mfa_lr_scheduler(self.optim_A, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
         self.scheduler_B = mfa_lr_scheduler(self.optim_B, self.cfg.SOLVER.USE_WARMUP, self.cfg.SOLVER.MAX_STEPS, cfg.SOLVER.GAMMA, cfg.SOLVER.WARMUP_STEP )
@@ -132,15 +132,7 @@ class BaseTrainer(object):
         param_dict = torch.load(weight_path, map_location=lambda storage, loc: storage)
         if 'state_dict' in param_dict.keys():
             param_dict = param_dict['state_dict']
-        
-        start_with_module = False
-        for k in model.state_dict().keys():
-            if k.startswith('module.'):
-                start_with_module = True
-                break
-        if start_with_module:
-            param_dict = {'module.'+k : v for k, v in param_dict.items() }
-
+    
         if self.rank == 0:
             print('ignore_param:')
             print([k for k, v in param_dict.items() if k not in model.state_dict() or
@@ -177,7 +169,8 @@ class BaseTrainer(object):
             if self.current_iteration % self.cfg.SOLVER.TENSORBOARD.LOG_PERIOD == 0:
                 if self.summary_writer:
                     self.summary_writer.add_scalar('Train/lr', lr, self.current_iteration)
-                    self.summary_writer.add_scalar('Train/loss', self.loss_avg.avg, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/loss_A', self.loss_A, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/loss_B', self.loss_B, self.current_iteration)
             if self.current_iteration % self.cfg.SOLVER.LOG_PERIOD == 0:
                 self.logger.info('Epoch[{}] Iteration[{}] Loss_A: {:.3f}, Loss_B: {:.3f}, Loss_src_A: {:.3f}, Loss_trg_A: {:.3f}, Loss_tc_A: {:.3f}, Loss_cmc_A: {:.3f}, Base Lr: {:.2e}, Alpha: {:.2f}' \
                                     .format(self.train_epoch, self.current_iteration, self.loss_A, self.loss_B, self.src_loss_A, self.trg_loss_A, \
