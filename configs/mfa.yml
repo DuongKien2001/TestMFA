@@ -89,8 +89,8 @@ SOLVER:
   RESUME: True
   RESUME_CHECKPOINT_A: r'/kaggle/input/mfa-uda/deeplabv2_A_step29.pth'
   RESUME_CHECKPOINT_B: r'/kaggle/input/mfa-uda/deeplabv2_A_step29.pth'
-  RESUME_CHECKPOINT_MEAN_A: r'/kaggle/input/mfa111/deeplabv2_Mean_A_step29.pth'
-  RESUME_CHECKPOINT_MEAN_B: r'/kaggle/input/mfa111/deeplabv2_Mean_B_step29.pth'
+  RESUME_CHECKPOINT_MEAN_A: r'/kaggle/input/mfa111/deeplabv2_Mean_A_step54pth'
+  RESUME_CHECKPOINT_MEAN_B: r'/kaggle/input/mfa111/deeplabv2_Mean_B_step54.pth'
   TENSORBOARD:
     USE: True
     LOG_PERIOD: 20
