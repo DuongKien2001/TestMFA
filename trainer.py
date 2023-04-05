@@ -132,7 +132,15 @@ class BaseTrainer(object):
         param_dict = torch.load(weight_path, map_location=lambda storage, loc: storage)
         if 'state_dict' in param_dict.keys():
             param_dict = param_dict['state_dict']
-    
+
+        start_with_module = False
+        for k in model.state_dict().keys():
+            if k.startswith('module.'):
+                start_with_module = True
+                break
+        if start_with_module:
+            param_dict = {'module.'+k : v for k, v in param_dict.items() }
+
         if self.rank == 0:
             print('ignore_param:')
             print([k for k, v in param_dict.items() if k not in model.state_dict() or
