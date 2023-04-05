@@ -92,6 +92,7 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
     for i in param_dict2A:
         modelA.state_dict()[i].copy_(param_dict2A[i])
     
+    modelA = modelA.to(gpu)
     evaluate(modelA, target_val_loader, args, cfg, gpu)
 
 if __name__ == '__main__':
