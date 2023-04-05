@@ -12,7 +12,7 @@ import argparse
 from dataset import make_dataloader
 import os
 
-def evaluate(modelA, modelB, dataloader, args, cfg, gpu, flip=True, save_res=False):
+def evaluate(modelA, dataloader, args, cfg, gpu, flip=True, save_res=False):
     import numpy as np
     import torch
     from utils import calculate_score, m_evaluate
@@ -20,7 +20,6 @@ def evaluate(modelA, modelB, dataloader, args, cfg, gpu, flip=True, save_res=Fal
     from PIL import Image
 
     modelA.eval()
-    modelB.eval()
     conf_mat = np.zeros((cfg.MODEL.N_CLASS, cfg.MODEL.N_CLASS)).astype(np.int64)
     softmax = torch.nn.Softmax(dim=1)
     with torch.no_grad():
@@ -28,10 +27,9 @@ def evaluate(modelA, modelB, dataloader, args, cfg, gpu, flip=True, save_res=Fal
             data, target, path = batch
             data = data.to(gpu)
             # data = torch.flip(data, (1,))  # in old version input channel is BGR, but now it is RGB
-            outputs = (softmax(modelA(data, upsample=True)) + softmax(modelB(data, upsample=True))) / 2.0
+            outputs = softmax(modelA(data, upsample=True))
             if flip:
-                outputs += (softmax(torch.flip(modelA(torch.flip(data, (3,))), (3,))) + softmax(torch.flip(modelB(torch.flip(data, (3,))), (3,))))/2.0
-            outputs = outputs.data.cpu()
+                outputs += softmax(torch.flip(modelA(torch.flip(data, (3,))), (3,)))
             _, preds = torch.max(outputs, (1))
             # save result
             if save_res:
@@ -94,31 +92,7 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
     for i in param_dict2A:
         modelA.state_dict()[i].copy_(param_dict2A[i])
     
-    modelB = build_model(cfg)
-    print('load from: ', cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
-    param_dictB = torch.load(cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B, map_location=lambda storage, loc: storage)
-    #print(param_dict.keys())
-    #if 'state_dict' in param_dict.keys():
-    #    param_dict = param_dict['state_dict']
-    param_dict1B = {}
-    for k, v in param_dictB.items():
-        k_ = k.replace("module.", "")
-        param_dict1B[k_]=param_dictB[k]
-    print('ignore_param:')
-    print([k for k, v in param_dict1B.items() if k not in modelB.state_dict() or
-            modelB.state_dict()[k].size() != v.size()])
-    print('unload_param:')
-    print([k for k, v in modelB.state_dict().items() if k not in param_dict1B.keys() or
-            param_dict1B[k].size() != v.size()] )
-
-    param_dict2B = {k: v for k, v in param_dict1B.items() if k in modelB.state_dict() and
-                    modelB.state_dict()[k].size() == v.size()}
-    for i in param_dict2B:
-        modelB.state_dict()[i].copy_(param_dict2B[i])
-    
-    modelA = modelA.to(gpu)
-    modelB = modelB.to(gpu)
-    evaluate(modelA, modelB, target_val_loader, args, cfg, gpu)
+    evaluate(modelA, target_val_loader, args, cfg, gpu)
 
 if __name__ == '__main__':
     from config import cfg
