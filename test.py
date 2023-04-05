@@ -73,8 +73,8 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
     
     modelA = build_model(cfg)
     # summary(model.cuda(), (3, 1024, 2048))
-    print('load from: ', cfg.TEST.WEIGHTA)
-    param_dictA = torch.load(cfg.TEST.WEIGHTA, map_location=lambda storage, loc: storage)
+    print('load from: ', cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A)
+    param_dictA = torch.load(cfg.SOLVER.RESUME_CHECKPOINT_MEAN_A, map_location=lambda storage, loc: storage)
     #print(param_dict.keys())
     #if 'state_dict' in param_dict.keys():
     #    param_dict = param_dict['state_dict']
@@ -95,7 +95,8 @@ def test_model(target_val_loader, args, cfg, gpu = 0):
         modelA.state_dict()[i].copy_(param_dict2A[i])
     
     modelB = build_model(cfg)
-    param_dictB = torch.load(cfg.TEST.WEIGHTB, map_location=lambda storage, loc: storage)
+    print('load from: ', cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B)
+    param_dictB = torch.load(cfg.SOLVER.RESUME_CHECKPOINT_MEAN_B, map_location=lambda storage, loc: storage)
     #print(param_dict.keys())
     #if 'state_dict' in param_dict.keys():
     #    param_dict = param_dict['state_dict']
