@@ -102,8 +102,8 @@ class BaseTrainer(object):
             self.summary_writer = SummaryWriter(log_dir=summary_dir)
         self.current_iteration = 744*30
 
-        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.mean_model_A, device=gpu)
-        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.mean_model_B, device=gpu)
+        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.mode_mean_A, device=gpu)
+        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.mode_mean_B, device=gpu)
         #self.mean_model_A.update_parameters(self.model_A)
         #self.mean_model_B.update_parameters(self.model_B)
 
