@@ -79,7 +79,7 @@ class BaseTrainer(object):
         self.res_recoder_A = result_recorder('mean_model_A')
         self.res_recoder_B = result_recorder('mean_model_B')
 
-        self.train_epoch = 30
+        self.train_epoch = 31
         self.optim_A = optimizer_A
         self.optim_B = optimizer_B
         self.scaler = scaler
@@ -100,12 +100,12 @@ class BaseTrainer(object):
             summary_dir = os.path.join(cfg.OUTPUT_DIR, 'summaries/')
             os.makedirs(summary_dir, exist_ok=True)
             self.summary_writer = SummaryWriter(log_dir=summary_dir)
-        self.current_iteration = 744*29
+        self.current_iteration = 744*30
 
-        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.model_A, device=gpu)
-        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.model_B, device=gpu)
-        self.mean_model_A.update_parameters(self.model_A)
-        self.mean_model_B.update_parameters(self.model_B)
+        self.mean_model_A = torch.optim.swa_utils.AveragedModel(self.mean_model_A, device=gpu)
+        self.mean_model_B = torch.optim.swa_utils.AveragedModel(self.mean_model_B, device=gpu)
+        #self.mean_model_A.update_parameters(self.model_A)
+        #self.mean_model_B.update_parameters(self.model_B)
 
         #assert self.is_equal(self.model_A, self.mean_model_A.module)
         #assert self.is_equal(self.model_B, self.mean_model_B.module)
@@ -177,8 +177,11 @@ class BaseTrainer(object):
             if self.current_iteration % self.cfg.SOLVER.TENSORBOARD.LOG_PERIOD == 0:
                 if self.summary_writer:
                     self.summary_writer.add_scalar('Train/lr', lr, self.current_iteration)
-                    self.summary_writer.add_scalar('Train/loss_A', self.loss_A, self.current_iteration)
-                    self.summary_writer.add_scalar('Train/loss_B', self.loss_B, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/lossA', self.loss_A, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/lossB', self.loss_B, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/loss_sourceA', self.src_loss_A, self.current_iteration)
+                    self.summary_writer.add_scalar('Train/loss_sourceB', self.src_loss_B, self.current_iteration)
+                    
             if self.current_iteration % self.cfg.SOLVER.LOG_PERIOD == 0:
                 self.logger.info('Epoch[{}] Iteration[{}] Loss_A: {:.3f}, Loss_B: {:.3f}, Loss_src_A: {:.3f}, Loss_trg_A: {:.3f}, Loss_tc_A: {:.3f}, Loss_cmc_A: {:.3f}, Base Lr: {:.2e}, Alpha: {:.2f}' \
                                     .format(self.train_epoch, self.current_iteration, self.loss_A, self.loss_B, self.src_loss_A, self.trg_loss_A, \
@@ -193,11 +196,6 @@ class BaseTrainer(object):
             self.logger.info('-' * 20)
             self.save()
             self.mean_save()
-            if self.train_epoch == 30:
-                torch.optim.swa_utils.update_bn(self.tt_dl, self.mean_model_A)
-                torch.optim.swa_utils.update_bn(self.tt_dl, self.mean_model_B)
-                self.evaluate(self.mean_model_A, self.res_recoder_A)
-                self.evaluate(self.mean_model_B, self.res_recoder_B)
         self.train_epoch += 1
     
     def adjust_valid_alpha(self, power=1.1):
